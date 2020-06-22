@@ -1,21 +1,30 @@
 from hypothesis import given
 from hypothesis.extra.pandas import data_frames, column
 from main import sum
-import pandas
+import pandas as pd
+import pytest
 
 
-@given(data_frames([
-    column('1', dtype='float'),
-    column('2', dtype='float')
-]))
-def test_sum(monkeypatch, df):
+@pytest.fixture
+def df_with_floats():
+    return pd.DataFrame({
+        '1': [1, 2, 3],
+        '2': [3, 2, 1]
+    })
+
+
+# @given(data_frames([
+#     column('1', dtype='float'),
+#     column('2', dtype='float')
+# ]))
+def test_sum(monkeypatch, df_with_floats):
     with monkeypatch.context() as context:
         def read_csv_mock(*args):
-            return df
+            return df_with_floats
 
-        context.setattr(pandas, 'read_csv', read_csv_mock)
+        context.setattr(pd, 'read_csv', read_csv_mock)
 
         result = sum()
 
     assert len(result.columns) == 3
-    assert result['3'].dtype == 'float'
+    assert result['3'].dtype == 'int'
